@@ -40,4 +40,11 @@ public class Users extends  Auditable {
     public boolean getEmailVerified(){
         return emailVerified;
     }
+
+    public Users(String first_name, String last_name, String email, boolean emailVerified) {
+        this.first_name = first_name;
+        this.last_name = last_name;
+        this.email = email;
+        this.emailVerified = emailVerified;
+    }
 }

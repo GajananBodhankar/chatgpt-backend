@@ -26,10 +26,7 @@ public class EmailVerification extends  Auditable {
     private String email;
 
     @NotBlank(message = "OTP cannot be blank")
-    @Pattern(
-            regexp = "^\\d{6}$",
-            message = "OTP must be exactly 6 digits"
-    )
+
     @Column(nullable = false)
     private String otp;
 
@@ -45,4 +42,12 @@ public class EmailVerification extends  Auditable {
 
     @Column(nullable = false)
     private boolean used = false;
+
+    public EmailVerification(String email, String otp, VerificationType verificationType, LocalDateTime expiresAt, Boolean used ){
+        this.email=email;
+        this.otp=otp;
+        this.type=verificationType;
+        this.expiresAt=expiresAt;
+        this.used=used;
+    }
 }
