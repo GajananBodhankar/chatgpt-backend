@@ -50,7 +50,16 @@ public class GlobalExceptionHandler {
 
         return buildResponse(HttpStatus.GONE, ex.getMessage(), null, request);
     }
+    @ExceptionHandler(TooManyOtpRequestsException.class)
+    public ResponseEntity<?> handleTooManyOtp() {
 
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(Map.of(
+                        "message",
+                        "Please wait 60 seconds before requesting another OTP."
+                ));
+    }
 
     @ExceptionHandler(OtpAlreadyUsedException.class)
     public ResponseEntity<ApiResponse<Object>> handleOtpAlreadyUsed(

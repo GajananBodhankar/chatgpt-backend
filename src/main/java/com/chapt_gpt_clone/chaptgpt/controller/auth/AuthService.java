@@ -9,7 +9,9 @@ import com.chapt_gpt_clone.chaptgpt.enums.VerificationType;
 import com.chapt_gpt_clone.chaptgpt.repository.UserRepository;
 import com.chapt_gpt_clone.chaptgpt.security.JwtService;
 import com.chapt_gpt_clone.chaptgpt.service.EmailService;
+import com.chapt_gpt_clone.chaptgpt.service.RateLimitService;
 import com.chapt_gpt_clone.chaptgpt.utils.OtpGenerator;
+import io.github.bucket4j.Bucket;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,11 +33,14 @@ public class AuthService {
     private final EmailService emailService;
     private final JwtService jwtService;
     private final EmailProducer emailProducer;
+    private final RateLimitService rateLimitService;
+
     @Transactional
     public void signup(SignupRequest loginSignupRequest) throws EmailAlreadyExistsException {
         if (userRepository.existsByEmail(loginSignupRequest.email())) {
             throw new EmailAlreadyExistsException("Email already exists.");
         }
+
         emailVerificationrepository.deleteByEmail(loginSignupRequest.email());
         String otp = otpGenerator.generate();
         Users users = new Users(loginSignupRequest.first_name(), loginSignupRequest.last_name(), loginSignupRequest.email(), false);
@@ -43,6 +48,7 @@ public class AuthService {
         emailProducer.publish(EmailMessage.builder()
                         .to(loginSignupRequest.email())
                         .template("Sign-up")
+                        .verificationType(VerificationType.SIGNUP)
                         .variables(Map.of("firstName", loginSignupRequest.first_name(), "otp", otp))
                 .build());
     }
@@ -52,11 +58,19 @@ public class AuthService {
         if (!userRepository.existsByEmail(loginRequest.email())) {
             throw new UserDoesNotExistsException("USer does not exists, please signup.");
         }
+        Bucket bucket =
+                rateLimitService.resolveBucket(loginRequest.email());
+        if (!bucket.tryConsume(1)) {
+            throw new TooManyOtpRequestsException();
+        }
         emailVerificationrepository.deleteByEmail(loginRequest.email());
         String otp = otpGenerator.generate();
-        EmailVerification emailVerification = new EmailVerification(loginRequest.email(), passwordEncoder.encode(otp), VerificationType.LOGIN, LocalDateTime.now().plusMinutes(5), false);
-        emailVerificationrepository.save(emailVerification);
-        emailService.sendOtp(loginRequest.email(), otp);
+        emailProducer.publish(EmailMessage.builder()
+                .to(loginRequest.email())
+                .template("login")
+                .variables(Map.of("otp", otp))
+                        .verificationType(VerificationType.LOGIN)
+                .build());
     }
 
     @Transactional
@@ -64,11 +78,11 @@ public class AuthService {
         EmailVerification emailVerification= emailVerificationrepository
                 .findTopByEmailAndUsedFalseOrderByCreatedAtDesc(verifySignupRequest.email())
                 .orElseThrow();
-        System.out.println("emailVerification"+ emailVerification.toString());
+        System.out.println("emailVerification"+ emailVerification.toString()+ "fsfds   "+LocalDateTime.now()+" dsadsad " +emailVerification.getExpiresAt());
         if(emailVerification.isUsed()){
             throw new OtpAlreadyUsedException("The otp is already used, please request for new otp.");
         }
-        if(!LocalDateTime.now().isAfter(emailVerification.getExpiresAt())){
+        if(LocalDateTime.now().isAfter(emailVerification.getExpiresAt())){
             throw new OtpExpiredException("The otp is expired, please request for new otp.");
         }
         if(!passwordEncoder.matches(verifySignupRequest.otp(), emailVerification.getOtp())){

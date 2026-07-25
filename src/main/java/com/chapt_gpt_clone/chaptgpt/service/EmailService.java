@@ -22,9 +22,9 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String from;
 
-    public void sendOtp(String email, String otp){
+    public void sendOtp(String email, String otp, VerificationType verificationType){
         String encoded = passwordEncoder.encode(otp);
-        EmailVerification emailVerification = new EmailVerification(email, encoded , VerificationType.SIGNUP, LocalDateTime.now().plusMinutes(5), false);
+        EmailVerification emailVerification = new EmailVerification(email, encoded ,verificationType, LocalDateTime.now().plusMinutes(15), false);
         emailVerificationrepository.save(emailVerification);
         SimpleMailMessage simpleMailMessage=new SimpleMailMessage();
         simpleMailMessage.setFrom(from);

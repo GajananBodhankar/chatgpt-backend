@@ -1,6 +1,7 @@
 package com.chapt_gpt_clone.chaptgpt.config;
 
 import com.chapt_gpt_clone.chaptgpt.dtoMapper.EmailMessage;
+import com.chapt_gpt_clone.chaptgpt.enums.VerificationType;
 import com.chapt_gpt_clone.chaptgpt.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -17,7 +18,8 @@ public class EmailConsumer {
 
         emailService.sendOtp(
                 message.getTo(),
-                (String) message.getVariables().get("otp")
+                (String) message.getVariables().get("otp"),
+                message.getVerificationType()
         );
     }
 }

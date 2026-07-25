@@ -1,5 +1,6 @@
 package com.chapt_gpt_clone.chaptgpt.dtoMapper;
 
+import com.chapt_gpt_clone.chaptgpt.enums.VerificationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,4 +31,6 @@ public class EmailMessage implements Serializable {
      * Dynamic values to replace inside the template.
      */
     private Map<String, Object> variables;
+
+    private VerificationType verificationType;
 }
