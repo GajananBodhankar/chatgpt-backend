@@ -1,6 +1,8 @@
 package com.chapt_gpt_clone.chaptgpt.controller.auth;
 
 import com.chapt_gpt_clone.chaptgpt.dtoMapper.*;
+import com.chapt_gpt_clone.chaptgpt.entity.RefreshToken;
+import com.chapt_gpt_clone.chaptgpt.service.RefreshTokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class controller {
     private final AuthService authService;
+    private final RefreshTokenService refreshTokenService;
+
     @PostMapping("/auth/signup")
     public ApiResponse<Object> signup(@Valid @RequestBody SignupRequest loginSignupRequest, HttpServletRequest httpServletRequest){
         authService.signup(loginSignupRequest);
@@ -49,6 +53,19 @@ public class controller {
                 .status(HttpStatus.CREATED.value())
                 .build();
     }
+
+    @PostMapping("/auth/refresh")
+    public ApiResponse<RefreshToken> generateRefreshToken(@RequestBody RefreshRequest refreshRequest, HttpServletRequest  httpServletRequest ){
+        return ApiResponse.<RefreshToken>builder()
+                .data(refreshTokenService.verify(refreshRequest.refreshToken()))
+                .error(null)
+                .path(httpServletRequest.getRequestURI())
+                .message("Refresh token verified successfully.")
+                .status(HttpStatus.CREATED.value())
+                .build();
+    }
+
+
 
     @GetMapping("/auth/check")
     public ApiResponse<Object> healthCheck(){
