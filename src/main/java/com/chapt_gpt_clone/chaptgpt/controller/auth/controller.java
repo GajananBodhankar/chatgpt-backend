@@ -17,7 +17,7 @@ public class controller {
     private final RefreshTokenService refreshTokenService;
 
     @PostMapping("/auth/signup")
-    public ApiResponse<Object> signup(@Valid @RequestBody SignupRequest loginSignupRequest, HttpServletRequest httpServletRequest){
+    public ApiResponse<Object> signup(@Valid @RequestBody SignupRequest loginSignupRequest, HttpServletRequest httpServletRequest) {
         authService.signup(loginSignupRequest);
         System.out.println("Signup");
         return ApiResponse.builder()
@@ -30,7 +30,7 @@ public class controller {
     }
 
     @PostMapping("/auth/login")
-    public ApiResponse<Object> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest httpServletRequest){
+    public ApiResponse<Object> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest httpServletRequest) {
         authService.login(loginRequest);
         return ApiResponse.builder()
                 .data("Otp sent successfully to the registered email.")
@@ -42,9 +42,9 @@ public class controller {
     }
 
     @PostMapping("/auth/verifyOtp")
-    public ApiResponse<Object> verifyOtp(@Valid @RequestBody VerifySignupRequest  verifySignupRequest, HttpServletRequest httpServletRequest){
-        System.out.println("VerifySignupRequest"+ verifySignupRequest.otp()+ "dsadsa"+verifySignupRequest.email());
-       JwtResponse jwtResponse = authService.verifyEmailOtp(verifySignupRequest);
+    public ApiResponse<Object> verifyOtp(@Valid @RequestBody VerifySignupRequest verifySignupRequest, HttpServletRequest httpServletRequest) {
+        System.out.println("VerifySignupRequest" + verifySignupRequest.otp() + "dsadsa" + verifySignupRequest.email());
+        JwtResponse jwtResponse = authService.verifyEmailOtp(verifySignupRequest);
         return ApiResponse.builder()
                 .data(jwtResponse)
                 .error(null)
@@ -55,7 +55,7 @@ public class controller {
     }
 
     @PostMapping("/auth/refresh")
-    public ApiResponse<RefreshToken> generateRefreshToken(@RequestBody RefreshRequest refreshRequest, HttpServletRequest  httpServletRequest ){
+    public ApiResponse<RefreshToken> generateRefreshToken(@RequestBody RefreshRequest refreshRequest, HttpServletRequest httpServletRequest) {
         return ApiResponse.<RefreshToken>builder()
                 .data(refreshTokenService.verify(refreshRequest.refreshToken()))
                 .error(null)
@@ -65,10 +65,19 @@ public class controller {
                 .build();
     }
 
+    @PostMapping("/auth/logout")
+    public ApiResponse<Object> logout(HttpServletRequest request) {
+        authService.logout(request);
+        return ApiResponse.builder()
+                .data(null)
+                .error(null)
+                .status(HttpStatus.NO_CONTENT.value())
+                .build();
+    }
 
 
     @GetMapping("/auth/check")
-    public ApiResponse<Object> healthCheck(){
+    public ApiResponse<Object> healthCheck() {
         return ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message("Successful")

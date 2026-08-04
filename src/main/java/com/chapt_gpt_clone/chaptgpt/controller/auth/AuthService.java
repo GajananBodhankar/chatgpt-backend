@@ -4,6 +4,7 @@ import com.chapt_gpt_clone.chaptgpt.Exceptions.*;
 import com.chapt_gpt_clone.chaptgpt.config.EmailProducer;
 import com.chapt_gpt_clone.chaptgpt.dtoMapper.*;
 import com.chapt_gpt_clone.chaptgpt.entity.EmailVerification;
+import com.chapt_gpt_clone.chaptgpt.entity.RefreshToken;
 import com.chapt_gpt_clone.chaptgpt.entity.Users;
 import com.chapt_gpt_clone.chaptgpt.enums.VerificationType;
 import com.chapt_gpt_clone.chaptgpt.repository.RefreshTokenRepository;
@@ -14,6 +15,7 @@ import com.chapt_gpt_clone.chaptgpt.service.RateLimitService;
 import com.chapt_gpt_clone.chaptgpt.service.RefreshTokenService;
 import com.chapt_gpt_clone.chaptgpt.utils.OtpGenerator;
 import io.github.bucket4j.Bucket;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,6 +39,7 @@ public class AuthService {
     private final EmailProducer emailProducer;
     private final RateLimitService rateLimitService;
     private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional
     public void signup(SignupRequest loginSignupRequest) throws EmailAlreadyExistsException {
@@ -78,27 +81,43 @@ public class AuthService {
 
     @Transactional
     public JwtResponse verifyEmailOtp(VerifySignupRequest verifySignupRequest) {
-        EmailVerification emailVerification = emailVerificationrepository
-                .findTopByEmailAndUsedFalseOrderByCreatedAtDesc(verifySignupRequest.email())
-                .orElseThrow();
-        System.out.println("emailVerification" + emailVerification.toString() + "fsfds   " + LocalDateTime.now() + " dsadsad " + emailVerification.getExpiresAt());
-        if (emailVerification.isUsed()) {
+        Optional<EmailVerification> emailVerification = emailVerificationrepository
+                .findTopByEmailAndUsedFalseOrderByCreatedAtDesc(verifySignupRequest.email());
+        if (emailVerification.isEmpty() || emailVerification.get().isUsed()) {
             throw new OtpAlreadyUsedException("The otp is already used, please request for new otp.");
         }
-        if (LocalDateTime.now().isAfter(emailVerification.getExpiresAt())) {
+        if (LocalDateTime.now().isAfter(emailVerification.get().getExpiresAt())) {
             throw new OtpExpiredException("The otp is expired, please request for new otp.");
         }
-        if (!passwordEncoder.matches(verifySignupRequest.otp(), emailVerification.getOtp())) {
+        if (!passwordEncoder.matches(verifySignupRequest.otp(), emailVerification.get().getOtp())) {
             throw new InvalidOtpException("The otp is invalid, please enter a valid otp.");
         }
-        emailVerificationrepository.markOtpUsed(emailVerification.getEmail(), emailVerification.getOtp());
+        emailVerificationrepository.markOtpUsed(emailVerification.get().getEmail(), emailVerification.get().getOtp());
         userRepository.markEmailVerified(verifySignupRequest.email());
         Optional<Users> users = userRepository.findByEmail(verifySignupRequest.email());
         if (users.isPresent()) {
-            String refreshToken = refreshTokenService.create(users.get());
+            Optional<RefreshToken> isRefreshTokenExists= refreshTokenRepository.findByEmail(users.get().getEmail());
+            String refreshToken;
+            if(isRefreshTokenExists.isPresent()){
+                refreshTokenRepository.revokeByEmail(users.get().getEmail(), false);
+                refreshToken=isRefreshTokenExists.get().getToken();
+            }else{
+            refreshToken = refreshTokenService.create(users.get());
+            }
             return new JwtResponse(jwtService.generateToken(users.get()), refreshToken, jwtService.getExpiration());
         }
         throw new UserDoesNotExistsException("USer does not exists, please signup.");
     }
 
+    public int logout(HttpServletRequest httpServletRequest){
+        String header = httpServletRequest.getHeader("Authorization");
+
+        String token =null;
+        String username = null;
+        if (header != null && header.startsWith("Bearer ")) {
+            token = header.substring(7);
+            username = jwtService.extractUsername(token);
+        }
+        return refreshTokenRepository.revokeByEmail(username, true);
+    }
 }

@@ -60,12 +60,9 @@ public class JwtService {
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         String username = userDetails.getUsername();
-        RefreshToken refreshToken = refreshTokenRepository.findByUsername(userDetails.getUsername()).orElseThrow();
+        RefreshToken refreshToken = refreshTokenRepository.findByEmail(userDetails.getUsername()).orElseThrow();
         if(refreshToken.getRevoked()){
             throw new RuntimeException("Token has been revoked, please login and generate new token");
-        }
-        if(refreshToken.getExpiresAt().isBefore(LocalDateTime.now())){
-            throw  new RuntimeException("Refresh token expired.");
         }
         return username.equals(extractUsername(token)) && !isTokenExpired(token);
     }
