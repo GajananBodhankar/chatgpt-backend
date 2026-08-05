@@ -2,6 +2,7 @@ package com.chapt_gpt_clone.chaptgpt.controller.auth;
 
 import com.chapt_gpt_clone.chaptgpt.dtoMapper.*;
 import com.chapt_gpt_clone.chaptgpt.entity.RefreshToken;
+import com.chapt_gpt_clone.chaptgpt.service.ConversationService;
 import com.chapt_gpt_clone.chaptgpt.service.RefreshTokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class controller {
     private final AuthService authService;
     private final RefreshTokenService refreshTokenService;
-
+private final ConversationService conversationService;
     @PostMapping("/auth/signup")
     public ApiResponse<Object> signup(@Valid @RequestBody SignupRequest loginSignupRequest, HttpServletRequest httpServletRequest) {
         authService.signup(loginSignupRequest);
@@ -72,6 +73,14 @@ public class controller {
                 .data(null)
                 .error(null)
                 .status(HttpStatus.NO_CONTENT.value())
+                .build();
+    }
+
+    @PostMapping("/conversations")
+    public ApiResponse<ConversationResponse> createConversation(@Valid @RequestBody CreateConversationRequest createConversationRequest, HttpServletRequest httpServletRequest){
+
+        return ApiResponse.<ConversationResponse>builder()
+                .data(conversationService.createConversation(createConversationRequest, httpServletRequest))
                 .build();
     }
 

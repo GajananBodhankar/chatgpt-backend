@@ -3,12 +3,16 @@ package com.chapt_gpt_clone.chaptgpt.security;
 import com.chapt_gpt_clone.chaptgpt.entity.RefreshToken;
 import com.chapt_gpt_clone.chaptgpt.entity.Users;
 import com.chapt_gpt_clone.chaptgpt.repository.RefreshTokenRepository;
+import com.chapt_gpt_clone.chaptgpt.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -21,6 +25,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class JwtService {
 
+    private final UserRepository  userRepository;
+
     @Value("${spring.application.security.jwt}")
     private String secret;
 
@@ -31,6 +37,19 @@ public class JwtService {
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
+    public Users getUserFromRequest(HttpServletRequest request) {
+        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Missing or invalid Authorization header");
+        }
+
+        String token = authHeader.substring(7);
+        String username = extractUsername(token);
+
+        return userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
     }
 
     public String generateToken(Users users) {

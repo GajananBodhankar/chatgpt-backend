@@ -25,6 +25,11 @@ public class Conversation extends Auditable {
     @Column(nullable = false, length = 100)
     private String model;
 
+    @NotBlank(message = "Title is required")
+    @Size(max = 150, message = "Title cannot exceed 150 characters")
+    @Column(nullable = false, length = 150)
+    private String title;
+
     @Size(max = 5000, message = "System prompt cannot exceed 5000 characters")
     @Column(columnDefinition = "TEXT")
     private String systemPrompt;
@@ -38,6 +43,6 @@ public class Conversation extends Auditable {
     private Boolean isArchived = false;
 
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    @ManyToOne(cascade = CascadeType.ALL)
-    Users users;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Users users;
 }
