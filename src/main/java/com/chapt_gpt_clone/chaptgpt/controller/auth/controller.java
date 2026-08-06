@@ -10,13 +10,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/")
 @RequiredArgsConstructor
 public class controller {
     private final AuthService authService;
     private final RefreshTokenService refreshTokenService;
-private final ConversationService conversationService;
+    private final ConversationService conversationService;
+
     @PostMapping("/auth/signup")
     public ApiResponse<Object> signup(@Valid @RequestBody SignupRequest loginSignupRequest, HttpServletRequest httpServletRequest) {
         authService.signup(loginSignupRequest);
@@ -78,9 +81,26 @@ private final ConversationService conversationService;
 
     @PostMapping("/conversations")
     public ApiResponse<ConversationResponse> createConversation(@Valid @RequestBody CreateConversationRequest createConversationRequest, HttpServletRequest httpServletRequest){
-
         return ApiResponse.<ConversationResponse>builder()
                 .data(conversationService.createConversation(createConversationRequest, httpServletRequest))
+                .status(HttpStatus.OK.value())
+                .error(null)
+                .message("Conversation created successfully.")
+                .build();
+    }
+
+    @GetMapping("/conversations")
+    public ApiResponse<List<ConversationResponse>> getAllConversations(HttpServletRequest httpServletRequest){
+        return ApiResponse.<List<ConversationResponse>>builder()
+                .data(conversationService.getAllConversations(httpServletRequest))
+                .status(HttpStatus.OK.value())
+                .build();
+    }
+
+    @GetMapping("/conversations/{id}")
+    public ApiResponse<ConversationResponse> getConversationId(@PathVariable Long id,  HttpServletRequest httpServletRequest){
+        return ApiResponse.<ConversationResponse>builder()
+                .data(conversationService.getConversations(id, httpServletRequest))
                 .build();
     }
 

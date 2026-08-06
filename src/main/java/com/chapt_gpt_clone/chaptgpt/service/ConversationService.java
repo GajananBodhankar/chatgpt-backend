@@ -12,6 +12,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class ConversationService {
@@ -32,5 +36,16 @@ public class ConversationService {
         return new ConversationResponse(conversation1.getId(), conversation1.getTitle(),
                 conversation1.getSystemPrompt(), conversation1.getCreatedAt(), conversation1.getUpdatedAt()
                 );
+    }
+
+    public List<ConversationResponse> getAllConversations(HttpServletRequest httpServletRequest){
+        Users users =jwtService.getUserFromRequest(httpServletRequest);
+       return conversationRepository.findByUsers_IdOrderByUpdatedAtDesc(users.getId()).stream()
+               .map(conversation::toConversationResponse).collect(Collectors.toList());
+    }
+
+    public ConversationResponse getConversations(Long id, HttpServletRequest httpServletRequest){
+        Optional<Conversation> conversation1=conversationRepository.findById(id);
+        return conversation1.map(conversation::toConversationResponse).orElse(null);
     }
 }
