@@ -1,6 +1,6 @@
 package com.chapt_gpt_clone.chaptgpt.service;
 
-import com.chapt_gpt_clone.chaptgpt.controller.auth.EmailVerificationrepository;
+import com.chapt_gpt_clone.chaptgpt.repository.EmailVerificationrepository;
 import com.chapt_gpt_clone.chaptgpt.entity.EmailVerification;
 import com.chapt_gpt_clone.chaptgpt.enums.VerificationType;
 import lombok.RequiredArgsConstructor;

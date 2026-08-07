@@ -3,6 +3,7 @@ package com.chapt_gpt_clone.chaptgpt.service;
 import com.chapt_gpt_clone.chaptgpt.entity.RefreshToken;
 import com.chapt_gpt_clone.chaptgpt.entity.Users;
 import com.chapt_gpt_clone.chaptgpt.repository.RefreshTokenRepository;
+import com.chapt_gpt_clone.chaptgpt.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +16,7 @@ import java.util.UUID;
 public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
-
+    private final JwtService jwtService;
     @Transactional
     public String create(Users users) {
         refreshTokenRepository.deleteByUsers(users);
@@ -28,7 +29,7 @@ public class RefreshTokenService {
         return refreshToken.getToken();
     }
 
-    public RefreshToken verify(String token){
+    public String verify(String token){
         RefreshToken refreshToken=refreshTokenRepository.findByToken(token).orElseThrow(()-> new RuntimeException("Invalid token"));
         if(refreshToken.getRevoked()){
             throw  new RuntimeException("Token has been revoked, please login and generate new token");
@@ -37,6 +38,7 @@ public class RefreshTokenService {
         if(refreshToken.getExpiresAt().isBefore(LocalDateTime.now())){
             throw  new RuntimeException("Refresh token Expired.");
         }
-        return refreshToken;
+
+        return jwtService.generateToken(refreshToken.getUsers());
     }
 }

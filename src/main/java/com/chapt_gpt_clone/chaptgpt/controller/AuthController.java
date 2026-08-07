@@ -1,7 +1,8 @@
-package com.chapt_gpt_clone.chaptgpt.controller.auth;
+package com.chapt_gpt_clone.chaptgpt.controller;
 
 import com.chapt_gpt_clone.chaptgpt.dtoMapper.*;
 import com.chapt_gpt_clone.chaptgpt.entity.RefreshToken;
+import com.chapt_gpt_clone.chaptgpt.service.AuthService;
 import com.chapt_gpt_clone.chaptgpt.service.ConversationService;
 import com.chapt_gpt_clone.chaptgpt.service.RefreshTokenService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,14 +14,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-public class controller {
+public class AuthController {
     private final AuthService authService;
     private final RefreshTokenService refreshTokenService;
-    private final ConversationService conversationService;
 
-    @PostMapping("/auth/signup")
+    @PostMapping("/signup")
     public ApiResponse<Object> signup(@Valid @RequestBody SignupRequest loginSignupRequest, HttpServletRequest httpServletRequest) {
         authService.signup(loginSignupRequest);
         System.out.println("Signup");
@@ -33,7 +33,7 @@ public class controller {
                 .build();
     }
 
-    @PostMapping("/auth/login")
+    @PostMapping("/login")
     public ApiResponse<Object> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest httpServletRequest) {
         authService.login(loginRequest);
         return ApiResponse.builder()
@@ -45,7 +45,7 @@ public class controller {
                 .build();
     }
 
-    @PostMapping("/auth/verifyOtp")
+    @PostMapping("/verifyOtp")
     public ApiResponse<Object> verifyOtp(@Valid @RequestBody VerifySignupRequest verifySignupRequest, HttpServletRequest httpServletRequest) {
         System.out.println("VerifySignupRequest" + verifySignupRequest.otp() + "dsadsa" + verifySignupRequest.email());
         JwtResponse jwtResponse = authService.verifyEmailOtp(verifySignupRequest);
@@ -58,9 +58,9 @@ public class controller {
                 .build();
     }
 
-    @PostMapping("/auth/refresh")
-    public ApiResponse<RefreshToken> generateRefreshToken(@RequestBody RefreshRequest refreshRequest, HttpServletRequest httpServletRequest) {
-        return ApiResponse.<RefreshToken>builder()
+    @PostMapping("/refresh")
+    public ApiResponse<Object> generateRefreshToken(@RequestBody RefreshRequest refreshRequest, HttpServletRequest httpServletRequest) {
+        return ApiResponse.builder()
                 .data(refreshTokenService.verify(refreshRequest.refreshToken()))
                 .error(null)
                 .path(httpServletRequest.getRequestURI())
@@ -69,7 +69,7 @@ public class controller {
                 .build();
     }
 
-    @PostMapping("/auth/logout")
+    @PostMapping("/logout")
     public ApiResponse<Object> logout(HttpServletRequest request) {
         authService.logout(request);
         return ApiResponse.builder()
@@ -79,33 +79,7 @@ public class controller {
                 .build();
     }
 
-    @PostMapping("/conversations")
-    public ApiResponse<ConversationResponse> createConversation(@Valid @RequestBody CreateConversationRequest createConversationRequest, HttpServletRequest httpServletRequest){
-        return ApiResponse.<ConversationResponse>builder()
-                .data(conversationService.createConversation(createConversationRequest, httpServletRequest))
-                .status(HttpStatus.OK.value())
-                .error(null)
-                .message("Conversation created successfully.")
-                .build();
-    }
-
-    @GetMapping("/conversations")
-    public ApiResponse<List<ConversationResponse>> getAllConversations(HttpServletRequest httpServletRequest){
-        return ApiResponse.<List<ConversationResponse>>builder()
-                .data(conversationService.getAllConversations(httpServletRequest))
-                .status(HttpStatus.OK.value())
-                .build();
-    }
-
-    @GetMapping("/conversations/{id}")
-    public ApiResponse<ConversationResponse> getConversationId(@PathVariable Long id,  HttpServletRequest httpServletRequest){
-        return ApiResponse.<ConversationResponse>builder()
-                .data(conversationService.getConversations(id, httpServletRequest))
-                .build();
-    }
-
-
-    @GetMapping("/auth/check")
+    @GetMapping("/check")
     public ApiResponse<Object> healthCheck() {
         return ApiResponse.builder()
                 .status(HttpStatus.OK.value())

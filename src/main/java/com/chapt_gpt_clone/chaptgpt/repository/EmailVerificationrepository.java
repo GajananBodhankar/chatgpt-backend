@@ -1,4 +1,4 @@
-package com.chapt_gpt_clone.chaptgpt.controller.auth;
+package com.chapt_gpt_clone.chaptgpt.repository;
 
 import com.chapt_gpt_clone.chaptgpt.entity.EmailVerification;
 import org.springframework.data.jpa.repository.JpaRepository;

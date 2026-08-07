@@ -1,7 +1,8 @@
-package com.chapt_gpt_clone.chaptgpt.controller.auth;
+package com.chapt_gpt_clone.chaptgpt.service;
 
 import com.chapt_gpt_clone.chaptgpt.Exceptions.*;
 import com.chapt_gpt_clone.chaptgpt.config.EmailProducer;
+import com.chapt_gpt_clone.chaptgpt.repository.EmailVerificationrepository;
 import com.chapt_gpt_clone.chaptgpt.dtoMapper.*;
 import com.chapt_gpt_clone.chaptgpt.entity.EmailVerification;
 import com.chapt_gpt_clone.chaptgpt.entity.RefreshToken;
@@ -10,19 +11,14 @@ import com.chapt_gpt_clone.chaptgpt.enums.VerificationType;
 import com.chapt_gpt_clone.chaptgpt.repository.RefreshTokenRepository;
 import com.chapt_gpt_clone.chaptgpt.repository.UserRepository;
 import com.chapt_gpt_clone.chaptgpt.security.JwtService;
-import com.chapt_gpt_clone.chaptgpt.service.EmailService;
-import com.chapt_gpt_clone.chaptgpt.service.RateLimitService;
-import com.chapt_gpt_clone.chaptgpt.service.RefreshTokenService;
 import com.chapt_gpt_clone.chaptgpt.utils.OtpGenerator;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.swing.text.html.Option;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
@@ -82,6 +78,7 @@ public class AuthService {
     @Transactional
     public JwtResponse verifyEmailOtp(VerifySignupRequest verifySignupRequest) {
         Optional<EmailVerification> emailVerification = emailVerificationrepository
+
                 .findTopByEmailAndUsedFalseOrderByCreatedAtDesc(verifySignupRequest.email());
         if (emailVerification.isEmpty() || emailVerification.get().isUsed()) {
             throw new OtpAlreadyUsedException("The otp is already used, please request for new otp.");

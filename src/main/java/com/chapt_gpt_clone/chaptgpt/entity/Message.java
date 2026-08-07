@@ -50,4 +50,15 @@ public class Message extends Auditable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conversation_id", nullable = false)
     private Conversation conversation;
+
+  public Message(MessageRole messageRole, MessageStatus messageStatus,
+                           String metaData, String parts, String content, Conversation conversation){
+        this.setMessageRole(messageRole);
+        this.setMessageStatus(messageStatus);
+        this.setContent(content);
+        this.setMetaData(metaData);
+        this.setConversation(conversation);
+    }
+
+
 }

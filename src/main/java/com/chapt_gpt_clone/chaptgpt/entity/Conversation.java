@@ -9,6 +9,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
@@ -45,4 +48,9 @@ public class Conversation extends Auditable {
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private Users users;
+
+    @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL,
+    orphanRemoval = true
+    )
+    private List<Message> messageList=new ArrayList<>();
 }
