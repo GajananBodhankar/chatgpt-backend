@@ -15,7 +15,6 @@ public class EmailConsumer {
 
     @RabbitListener(queues = RabbitMQConfig.EMAIL_QUEUE)
     public void consume(EmailMessage message) {
-
         emailService.sendOtp(
                 message.getTo(),
                 (String) message.getVariables().get("otp"),
