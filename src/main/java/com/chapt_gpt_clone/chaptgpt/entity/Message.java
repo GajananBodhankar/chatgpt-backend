@@ -59,6 +59,4 @@ public class Message extends Auditable {
         this.setMetaData(metaData);
         this.setConversation(conversation);
     }
-
-
 }

@@ -69,6 +69,8 @@ public class MessageService {
                 });
     }
 
+    // if first message is edited the generate a new conversation title and
+    // also delete all the messages after that
     @Transactional
     protected Conversation updateConversationAndMessage(Long conversationId, Long messageId, MessageRequest messageRequest) {
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow();
